@@ -1,12 +1,15 @@
-from fastapi import FastAPI  # type: ignore
-from fastapi.responses import PlainTextResponse  # type: ignore
+from http.server import BaseHTTPRequestHandler
 from openai import OpenAI  # type: ignore
 
-app = FastAPI()
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        client = OpenAI()
+        prompt = [{"role": "user", "content": "Come up with a new business idea for AI Agents"}]
+        response = client.chat.completions.create(model="gpt-4", messages=prompt)
+        idea = response.choices[0].message.content
 
-@app.get("/", response_class=PlainTextResponse)
-def idea():
-    client = OpenAI()
-    prompt = [{"role": "user", "content": "Come up with a new business idea for AI Agents"}]
-    response = client.chat.completions.create(model="gpt-4", messages=prompt)
-    return response.choices[0].message.content
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(idea.encode())
+        return
